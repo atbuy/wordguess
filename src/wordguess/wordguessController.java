@@ -403,7 +403,6 @@ public class wordguessController implements Initializable {
 
         // Create timer to update time label every second
         Timer timer = new Timer();
-        System.out.println(timerLabel);
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -412,7 +411,6 @@ public class wordguessController implements Initializable {
                     int minutes = currentDuration / 60;
                     int seconds = currentDuration % 60;
                     String timed = String.format("Time: %02d:%02d", minutes, seconds);
-                    System.out.println(timed);
                     timerLabel.setText(timed);
                 });
 
