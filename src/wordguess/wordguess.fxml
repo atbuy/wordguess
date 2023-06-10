@@ -245,6 +245,14 @@
                                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                  </GridPane.margin>
                               </Label>
+                              <Label fx:id="timerLabel" text="Time: 00:00" textFill="#f04c41" GridPane.rowIndex="2">
+                                 <font>
+                                    <Font size="36.0" />
+                                 </font>
+                                 <GridPane.margin>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                 </GridPane.margin>
+                              </Label>
                            </children>
                         </GridPane>
                         <TableView fx:id="wordTable" prefHeight="200.0" prefWidth="200.0" />
