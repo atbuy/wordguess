@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.io.FileNotFoundException;
 import java.io.File;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -127,8 +130,11 @@ public class wordguessController implements Initializable {
     private TableView<Words> wordTable;
     @FXML
     private Label statusLabel;
+    @FXML
+    private Label timerLabel;
 
     Random random = new Random();
+    int currentDuration = 0;
     int score = 0;
     int characterAmount = random.nextInt(4) + 4;
     int[] currentPositions = new int[characterAmount];
@@ -260,11 +266,18 @@ public class wordguessController implements Initializable {
         resetScore();
         clearScrollGrid();
         clearNotificationLabel();
+        resetTimer();
     }
 
     private void clearScrollGrid() {
         // Clear scroll pane
         wordTable.getItems().clear();
+    }
+
+    private void resetTimer() {
+        // Reset timer
+        currentDuration = 0;
+        timerLabel.setText("Time: 00:00");
     }
 
     private void resetScore() {
@@ -387,5 +400,21 @@ public class wordguessController implements Initializable {
         wordColumn.setCellValueFactory(cellData -> cellData.getValue().wordProperty());
         wordTable.getColumns().add(wordColumn);
         wordTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        // Create timer to update time label every second
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    currentDuration += 1;
+                    int minutes = currentDuration / 60;
+                    int seconds = currentDuration % 60;
+                    String timed = String.format("Time: %02d:%02d", minutes, seconds);
+                    timerLabel.setText(timed);
+                });
+
+            }
+        }, 1000, 1000);
     }
 }
