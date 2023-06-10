@@ -1,0 +1,58 @@
+/* Game Scene Classes */
+.game-background {
+    -fx-background-color: #222222;
+}
+
+.submit-btn {
+    -fx-background-color: #424242;
+    -fx-border-radius: 7px;
+    -fx-background-radius: 7px;
+    -fx-border-color: #f04c41;
+}
+
+.submit-btn:focus {
+    -fx-background-color: #3d3d3d;
+}
+
+.reload-btn {
+    -fx-background-color: #f04c41;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.reload-btn:focus {
+    -fx-background-color: #e03b2f;
+    -fx-text-fill: white;
+}
+
+.text-area {
+    -fx-text-fill: white;
+    -fx-control-inner-background: #323232;
+}
+
+.text-area > .content {
+    -fx-border-color: white;
+    -fx-control-inner-background: #323232;
+    -fx-highlight-fill: white;
+}
+
+.table-view {
+    -fx-background-color: #323232;
+    -fx-border-color: white;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-text-fill: white;
+}
+
+.table-view .table-cell {
+    -fx-background-color: #323232;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+}
+
+.table-view .column-header {
+    -fx-background-color: white;
+    -fx-text-fill: white;
+}
