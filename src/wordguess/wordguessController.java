@@ -34,6 +34,7 @@ enum TextError {
     IncorrectLetters,
     NotAWord,
     WordAlreadyFound,
+    TooManyUsesOfSameLetter,
 }
 
 class Wordlist {
@@ -139,7 +140,7 @@ public class wordguessController implements Initializable {
     int characterAmount = random.nextInt(4) + 4;
     int[] currentPositions = new int[characterAmount];
     Map<String, Label> labelMap;
-    List<String> currentCharacters = new ArrayList<>();
+    HashMap<String, Integer> currentCharacters = new HashMap<String, Integer>();
     ObservableList<Words> wordlist = FXCollections.observableArrayList();
     List<String> foundWords = new ArrayList<>();
 
@@ -160,6 +161,9 @@ public class wordguessController implements Initializable {
                     break;
                 case WordAlreadyFound:
                     statusLabel.setText("Error: Word already found");
+                    break;
+                case TooManyUsesOfSameLetter:
+                    statusLabel.setText("Error: Too many uses of the same letter");
                     break;
                 default:
                     break;
@@ -235,12 +239,15 @@ public class wordguessController implements Initializable {
         // Display random characters on the character grid
         String[] characters = getRandomCharacters();
 
-        // Append character to accepted characters list
+        // Append character to accepted characters map.
+        // The map also contains the times the character can be used in a guess.
         for (int i = 0; i < characters.length; i++) {
-            try {
-                currentCharacters.set(i, characters[i]);
-            } catch (IndexOutOfBoundsException e) {
-                currentCharacters.add(characters[i]);
+            String character = characters[i];
+            if (currentCharacters.containsKey(character)) {
+                int currentAmount = currentCharacters.get(character);
+                currentCharacters.put(character, currentAmount + 1);
+            } else {
+                currentCharacters.put(character, 1);
             }
         }
 
@@ -257,6 +264,10 @@ public class wordguessController implements Initializable {
         handleKeyboardEnter();
     }
 
+    private void resetFoundWords() {
+        foundWords.clear();
+    }
+
     @FXML
     private void handleReloadButtonAction(ActionEvent event) {
         characterAmount = random.nextInt(3) + 3;
@@ -267,6 +278,7 @@ public class wordguessController implements Initializable {
         clearScrollGrid();
         clearNotificationLabel();
         resetTimer();
+        resetFoundWords();
     }
 
     private void clearScrollGrid() {
@@ -305,23 +317,42 @@ public class wordguessController implements Initializable {
         statusLabel.setTextFill(Color.color(0.298, 0.686, 0.313));
     }
 
+    private void scrollToLastWord() {
+        int lastIndex = wordTable.getItems().size() - 1;
+        wordTable.scrollTo(lastIndex);
+    }
+
     public void handleKeyboardEnter() {
         // Parse text
         String text = textArea.getText().trim();
 
         // Check if word is a valid length
-        if (text.length() != characterAmount) {
+        if (text.length() > characterAmount) {
             throwInvalidTextError(TextError.IncorrectLength);
             return;
         }
 
         // Check if the word has only the accepted letters
+        // and that the letters are not used more times than they appear in the grid
+        HashMap<String, Integer> currentCharactersCopy = new HashMap<String, Integer>(currentCharacters);
         for (int i = 0; i < text.length(); i++) {
             String character = String.valueOf(text.charAt(i));
-            if (!currentCharacters.contains(character)) {
+
+            // The character is not in the grid
+            if (!currentCharactersCopy.containsKey(character)) {
                 throwInvalidTextError(TextError.IncorrectLetters);
                 return;
             }
+
+            // Check if the character has been used more times than it appears in the grid
+            int currentAmount = currentCharactersCopy.get(character);
+            if (currentAmount == 0) {
+                throwInvalidTextError(TextError.TooManyUsesOfSameLetter);
+                return;
+            }
+
+            // Update the amount of times the character can be used
+            currentCharactersCopy.put(character, currentAmount - 1);
         }
 
         // Check if the word is a valid english word
@@ -341,6 +372,7 @@ public class wordguessController implements Initializable {
         clearTextArea();
         updateScore(1);
         successMessage("Word found!");
+        scrollToLastWord();
     }
 
     @Override
