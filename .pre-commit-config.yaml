@@ -1,0 +1,16 @@
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.3.0
+      hooks:
+          - id: pretty-format-json
+            name: pretty format json
+            args: ["--autofix", "--indent", "4", "--no-sort-keys"]
+          - id: check-json
+            name: check json
+            types: [json]
+          - id: check-yaml
+            name: check yaml
+          - id: end-of-file-fixer
+            name: add new line to end of file
+          - id: trailing-whitespace
+            name: remove trailing whitespace
