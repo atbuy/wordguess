@@ -14,6 +14,11 @@ public class Wordguess extends Application {
 
         Scene scene = new Scene(root);
         stage.setScene(scene);
+
+        // Start background music
+        Sounds sounds = new Sounds();
+        sounds.startThemePlayer();
+
         stage.show();
     }
 

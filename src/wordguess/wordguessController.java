@@ -141,8 +141,13 @@ public class wordguessController implements Initializable {
     int[] currentPositions = new int[characterAmount];
     Map<String, Label> labelMap;
     HashMap<String, Integer> currentCharacters = new HashMap<String, Integer>();
+
+    // Successful words list
     ObservableList<Words> wordlist = FXCollections.observableArrayList();
     List<String> foundWords = new ArrayList<>();
+
+    // Load Sounds
+    Sounds sounds = new Sounds();
 
     // Load words from wordlist file
     List<String> words = new Wordlist().words;
@@ -170,6 +175,7 @@ public class wordguessController implements Initializable {
             }
 
             statusLabel.setTextFill(Color.color(0.941, 0.298, 0.254));
+            sounds.playError();
         }
     }
 
@@ -373,6 +379,7 @@ public class wordguessController implements Initializable {
         updateScore(1);
         successMessage("Word found!");
         scrollToLastWord();
+        sounds.playSuccess();
     }
 
     @Override
