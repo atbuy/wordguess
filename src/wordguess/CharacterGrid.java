@@ -81,7 +81,6 @@ public class CharacterGrid implements GameObject {
         }
     }
 
-    @Override
     public void setup() {
         // Display random characters on the character grid
         String[] characters = getRandomCharacters();
@@ -102,7 +101,6 @@ public class CharacterGrid implements GameObject {
         display(labelMap, characters);
     }
 
-    @Override
     public void clear() {
         /// Clear all characters from the grid
 
@@ -115,7 +113,6 @@ public class CharacterGrid implements GameObject {
         currentCharacters.clear();
     }
 
-    @Override
     public void reload() {
         // Clear the grid and setup a new round
         clear();
