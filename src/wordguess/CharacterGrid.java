@@ -10,7 +10,7 @@ import javafx.scene.control.Label;
 
 public class CharacterGrid implements GameObject {
     private static Random random = new Random();
-    public static final int characterAmount = random.nextInt(2) + 5;
+    public static final int characterAmount = 7 + random.nextInt(2);
 
     // Holds all the accepted characters for the current round
     private Map<String, Label> labelMap;
@@ -31,7 +31,7 @@ public class CharacterGrid implements GameObject {
     private String[] getRandomCharacters() {
         // Select 2 to 3 random vowels
         String[] vowels = { "a", "e", "i", "o", "u" };
-        int vowelAmount = random.nextInt(2) + 2;
+        int vowelAmount = 3 + random.nextInt(2);
         String[] selectedVowels = new String[vowelAmount];
         for (int i = 0; i < vowelAmount; i++) {
             int randomIndex = random.nextInt(vowels.length);
