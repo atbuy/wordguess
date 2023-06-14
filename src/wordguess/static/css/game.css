@@ -1,4 +1,9 @@
 /* Game Scene Classes */
+
+.main-grid Line {
+    -fx-stroke: white;
+}
+
 .game-background {
     -fx-background-color: #222222;
 }
