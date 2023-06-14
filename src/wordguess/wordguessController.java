@@ -2,22 +2,17 @@ package wordguess;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.Random;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.FileNotFoundException;
 import java.io.File;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -35,6 +30,7 @@ enum TextError {
     NotAWord,
     WordAlreadyFound,
     TooManyUsesOfSameLetter,
+    NoError,
 }
 
 class Wordlist {
@@ -134,23 +130,13 @@ public class wordguessController implements Initializable {
     @FXML
     private Label timerLabel;
 
-    Random random = new Random();
-    int currentDuration = 0;
     int score = 0;
-    int characterAmount = random.nextInt(4) + 4;
-    int[] currentPositions = new int[characterAmount];
+    int currentDuration = 0;
     Map<String, Label> labelMap;
-    HashMap<String, Integer> currentCharacters = new HashMap<String, Integer>();
 
-    // Successful words list
-    ObservableList<Words> wordlist = FXCollections.observableArrayList();
-    List<String> foundWords = new ArrayList<>();
-
-    // Load Sounds
+    Game game = new Game();
     Sounds sounds = new Sounds();
-
-    // Load words from wordlist file
-    List<String> words = new Wordlist().words;
+    CharacterGrid characterGrid;
 
     private void throwInvalidTextError(TextError error) {
         if (error != null) {
@@ -179,129 +165,33 @@ public class wordguessController implements Initializable {
         }
     }
 
-    private String[] getRandomCharacters() {
-        // Select 2 to 3 random vowels
-        String[] vowels = { "a", "e", "i", "o", "u" };
-        int vowelAmount = random.nextInt(2) + 2;
-        String[] selectedVowels = new String[vowelAmount];
-        for (int i = 0; i < vowelAmount; i++) {
-            int randomIndex = random.nextInt(vowels.length);
-            selectedVowels[i] = vowels[randomIndex];
-        }
-
-        // Select the rest of the characters as consonants
-        String[] consonants = {
-                "b", "c", "d", "f", "g",
-                "h", "j", "k", "l", "m",
-                "n", "p", "q", "r", "s",
-                "t", "v", "w", "x", "z"
-        };
-        int consonantAmount = characterAmount - vowelAmount;
-        String[] selectedConsonants = new String[consonantAmount];
-        for (int i = 0; i < consonantAmount; i++) {
-            int randomIndex = random.nextInt(consonants.length);
-            selectedConsonants[i] = consonants[randomIndex];
-        }
-
-        // Merge vowels and consonants into one array
-        String[] selectedCharacters = new String[characterAmount];
-        System.arraycopy(selectedVowels, 0, selectedCharacters, 0, vowelAmount);
-        System.arraycopy(selectedConsonants, 0, selectedCharacters, vowelAmount, consonantAmount);
-        return selectedCharacters;
-    }
-
-    private void displayCharacters(Map<String, Label> map, String[] characters) {
-        // Generate random positions without duplicates.
-        // Using HashSet, because order doesn't matter in this case.
-        Set<Integer> positions = new HashSet<>();
-        while (positions.size() < characterAmount) {
-            positions.add(random.nextInt(30));
-        }
-
-        // Convert HashSet to array
-        Integer[] pos = positions.toArray(new Integer[0]);
-
-        // Display characters on the grid
-        for (int i = 0; i < characterAmount; i++) {
-            // Get label ID by position
-            String label = String.format("label_%d", pos[i]);
-
-            // Get label object and display character
-            Label labelObject = map.get(label);
-            labelObject.setText(characters[i]);
-        }
-    }
-
-    private void clearCharacterGrid(Map<String, Label> map) {
-        /// Clear all characters from the grid
-
-        for (Map.Entry<String, Label> entry : map.entrySet()) {
-            Label label = entry.getValue();
-            label.setText("");
-        }
-    }
-
-    private void setupCharacterGrid(Map<String, Label> map) {
-        // Display random characters on the character grid
-        String[] characters = getRandomCharacters();
-
-        // Append character to accepted characters map.
-        // The map also contains the times the character can be used in a guess.
-        for (int i = 0; i < characters.length; i++) {
-            String character = characters[i];
-            if (currentCharacters.containsKey(character)) {
-                int currentAmount = currentCharacters.get(character);
-                currentCharacters.put(character, currentAmount + 1);
-            } else {
-                currentCharacters.put(character, 1);
-            }
-        }
-
-        // Show character on the grid
-        displayCharacters(map, characters);
-    }
-
-    private void clearNotificationLabel() {
-        statusLabel.setText("");
-    }
-
     @FXML
     private void handleSubmitButtonAction(ActionEvent event) {
         handleKeyboardEnter();
     }
 
-    private void resetFoundWords() {
-        foundWords.clear();
-    }
-
     @FXML
     private void handleReloadButtonAction(ActionEvent event) {
-        characterAmount = random.nextInt(3) + 3;
-        clearCharacterGrid(labelMap);
-        setupCharacterGrid(labelMap);
-        clearTextArea();
-        resetScore();
-        clearScrollGrid();
-        clearNotificationLabel();
-        resetTimer();
-        resetFoundWords();
-    }
+        // Clear text area input
+        textArea.setText("");
 
-    private void clearScrollGrid() {
-        // Clear scroll pane
-        wordTable.getItems().clear();
-    }
-
-    private void resetTimer() {
-        // Reset timer
-        currentDuration = 0;
-        timerLabel.setText("Time: 00:00");
-    }
-
-    private void resetScore() {
-        // Reset score for new words
+        // Reset score
         score = 0;
         updateScore(0);
+
+        // Remove words from the table
+        wordTable.getItems().clear();
+
+        // Remove any notifications already shown
+        statusLabel.setText("");
+
+        // Reset timer to 0 seconds
+        currentDuration = 0;
+        timerLabel.setText("Time: 00:00");
+
+        // Reload objects
+        game.reload();
+        characterGrid.reload();
     }
 
     private void clearTextArea() {
@@ -313,73 +203,33 @@ public class wordguessController implements Initializable {
         scoreLabel.setText(String.format("Score: %d", score));
     }
 
-    private void addWordToFoundWords(String word) {
-        wordlist.add(new Words(word));
-        foundWords.add(word);
-    }
-
     private void successMessage(String message) {
         statusLabel.setText(message);
         statusLabel.setTextFill(Color.color(0.298, 0.686, 0.313));
     }
 
-    private void scrollToLastWord() {
-        int lastIndex = wordTable.getItems().size() - 1;
-        wordTable.scrollTo(lastIndex);
-    }
-
     public void handleKeyboardEnter() {
-        // Parse text
-        String text = textArea.getText().trim();
+        // Parse word and validate it against the current characters
+        String word = textArea.getText().toLowerCase().trim();
+        TextError result = game.validWord(word, characterGrid.currentCharacters);
 
-        // Check if word is a valid length
-        if (text.length() > characterAmount) {
-            throwInvalidTextError(TextError.IncorrectLength);
-            return;
-        }
-
-        // Check if the word has only the accepted letters
-        // and that the letters are not used more times than they appear in the grid
-        HashMap<String, Integer> currentCharactersCopy = new HashMap<String, Integer>(currentCharacters);
-        for (int i = 0; i < text.length(); i++) {
-            String character = String.valueOf(text.charAt(i));
-
-            // The character is not in the grid
-            if (!currentCharactersCopy.containsKey(character)) {
-                throwInvalidTextError(TextError.IncorrectLetters);
-                return;
-            }
-
-            // Check if the character has been used more times than it appears in the grid
-            int currentAmount = currentCharactersCopy.get(character);
-            if (currentAmount == 0) {
-                throwInvalidTextError(TextError.TooManyUsesOfSameLetter);
-                return;
-            }
-
-            // Update the amount of times the character can be used
-            currentCharactersCopy.put(character, currentAmount - 1);
-        }
-
-        // Check if the word is a valid english word
-        if (!words.contains(text)) {
-            throwInvalidTextError(TextError.NotAWord);
-            return;
-        }
-
-        // Check if the word has already been found
-        if (foundWords.contains(text)) {
-            throwInvalidTextError(TextError.WordAlreadyFound);
+        // The input had some error, so we need to display it
+        if (result != TextError.NoError) {
+            throwInvalidTextError(result);
             return;
         }
 
         // Word has been found, update UI
-        addWordToFoundWords(text);
         clearTextArea();
         updateScore(1);
         successMessage("Word found!");
-        scrollToLastWord();
+
+        // Scroll to last word in the table
+        int lastIndex = wordTable.getItems().size() - 1;
+        wordTable.scrollTo(lastIndex);
+
         sounds.playSuccess();
+
     }
 
     @Override
@@ -419,8 +269,12 @@ public class wordguessController implements Initializable {
             }
         };
 
-        // Display random characters on the left grid
-        setupCharacterGrid(labelMap);
+        // Setup character grid
+        characterGrid = new CharacterGrid(labelMap);
+        characterGrid.setup();
+
+        // Link found words table with wordlist
+        wordTable.setItems(game.wordlist);
 
         // Handle ENTER keypress on text area
         textArea.setOnKeyPressed((KeyEvent keyEvent) -> {
@@ -430,10 +284,7 @@ public class wordguessController implements Initializable {
             }
         });
 
-        // Configure table view
-        wordTable.setItems(wordlist);
-
-        // Configure column for words found
+        // Configure column for found words table
         TableColumn<Words, String> wordColumn = new TableColumn<>("Words Found");
         wordColumn.setMinWidth(wordTable.getWidth());
         wordColumn.setCellValueFactory(cellData -> cellData.getValue().wordProperty());
